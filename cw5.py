@@ -10,7 +10,6 @@ except ValueError:
 
 if age < 18:
         print('თქვენ არასრულწლოვანი ხართ!')
-elif age == 18:
-        print('ზუსტად 18 წლის ხართ!')
+
 else:
         print('სრულწლოვანი')

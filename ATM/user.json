@@ -1,0 +1,47 @@
+[
+    {
+        "name": "Elene",
+        "surname": "Tsetskhladze",
+        "password": "Elene123",
+        "balance": {
+            "GEL": 1000,
+            "USD": 500
+        }
+    },
+        {
+        "name": "Ana",
+        "surname": "Beridze",
+        "password": "Ana123",
+        "balance": {
+            "GEL": 2500,
+            "USD": 800
+        }
+    },
+    {
+        "name": "Giorgi",
+        "surname": "kachapuridze",
+        "password": "Giorgi123",
+        "balance": {
+            "GEL": 1500,
+            "USD": 300
+        }
+    },
+    {
+        "name": "Luka",
+        "surname": "Japaridze",
+        "password": "Luka123",
+        "balance": {
+            "GEL": 3200,
+            "USD": 1200
+        }
+    },
+    {
+        "name": "Mariam",
+        "surname": "Gelashvili",
+        "password": "Mariam123",
+        "balance": {
+            "GEL": 800,
+            "USD": 150
+        }
+    }
+]

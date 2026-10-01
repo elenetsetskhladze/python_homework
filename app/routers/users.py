@@ -5,6 +5,7 @@ from app.database import get_db
 from app.models.user import User
 from app.security import verify_password, hash_password, get_current_user, require_admin, create_access_token, create_refresh_token, SECRET_KEY, ALGORITHM
 from fastapi.security import OAuth2PasswordRequestForm
+from jose import jwt, JWTError
 
 router = APIRouter(prefix="/user", tags=["users"])
 

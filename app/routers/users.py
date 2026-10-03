@@ -1,17 +1,20 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy.orm import Session
 from app.schemas.user import UserCreate, UserResponse, UserLogin, UserUpdate, RefreshTokenSchema
 from app.database import get_db
 from app.models.user import User
-from app.security import verify_password, hash_password, get_current_user, require_admin, create_access_token, create_refresh_token, SECRET_KEY, ALGORITHM
+from app.security import verify_password, hash_password, get_current_user, require_admin, create_access_token, create_refresh_token, send_welcome_email, SECRET_KEY, ALGORITHM
 from fastapi.security import OAuth2PasswordRequestForm
 from jose import jwt, JWTError
 
 router = APIRouter(prefix="/user", tags=["users"])
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-def create_user(user:UserCreate , db: Session = Depends(get_db)):
+def create_user(user:UserCreate,
+                background_tasks: BackgroundTasks,
+                db: Session = Depends(get_db)):
     existing_user = db.query(User).filter(User.email == user.email).first()
+
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
 
@@ -24,6 +27,8 @@ def create_user(user:UserCreate , db: Session = Depends(get_db)):
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
+
+    background_tasks.add_task(send_welcome_email, new_user.email)
 
     return new_user
 
@@ -51,12 +56,12 @@ def login_user(
             detail="Incorrect username or password"
         )
 
-    access_token = create_access_token(
-        data={"user_id": existing_user.id}
-    )
+    access_token = create_access_token(data={"user_id": existing_user.id})
+    refresh_token = create_refresh_token(data={"user_id": existing_user.id})
 
     return {
         "access_token": access_token,
+        "refresh_token": refresh_token,
         "token_type": "bearer"
     }
 
@@ -75,10 +80,13 @@ def refresh_token(request: RefreshTokenSchema):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token")
 
     access_token = create_access_token(data={"user_id": user_id})
+    refresh_token = create_refresh_token(data={"user_id": user_id})
 
     return {
         'access_token': access_token,
+        'refresh_token': refresh_token,
         'token_type': 'bearer'
+
     }
 
 

@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.models.user import User
 from app.database import get_db
 from fastapi.security import OAuth2PasswordBearer
+import time
 
 
 password_hasher = PasswordHash.recommended()
@@ -20,6 +21,7 @@ def verify_password(password: str, hashed_password: str):
 SECRET_KEY = "secret"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
+REFRESH_TOKEN_EXPIRE_DAYS = 7
 
 def create_access_token(data: dict):
     to_encode = data.copy()
@@ -38,13 +40,24 @@ def create_access_token(data: dict):
 def create_refresh_token(data: dict):
     to_encode = data.copy()
 
-    expire = datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_MINUTES)
+    expire = datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
 
-    to_encode.update({"exp": expire})
+    to_encode.update({
+        "exp": expire,
+        "token_type": "refresh"
+    })
 
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
     return encoded_jwt
+
+def verify_token(token: str):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    except JWTError:
+        return "Token invalid or expired. Please log in again."
+
+    return payload
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/user/login")
 
@@ -71,8 +84,18 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
 def require_admin(current_user: User = Depends(get_current_user)):
     if current_user.role != "admin":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You don't have permission to access this route")
-
     return current_user
+
+def send_welcome_email(email: str):
+    print(f'Sending welcome email to "{email}"')
+    time.sleep(3)
+    print(f'email sent to "{email}"')
+
+
+
+
+
+
 
 
 
